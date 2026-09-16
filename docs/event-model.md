@@ -80,17 +80,25 @@ ad.spend.recorded        (future)
 ## Money fields — no ambiguous "sales" field
 
 Every money field on `OrderAttributes` is explicit (see `shop_platform/money` for the
-integer-cents representation that keeps these exact):
+integer-cents representation that keeps these exact). Shopify's GraphQL Admin API doesn't
+expose a single "pre-discount order total" field directly — discounts are netted in at the
+line-item level (`LineItem.originalTotalSet` vs. `discountedTotalSet`) — so gross_sales is
+*derived* by summing line items, not read off one order-level field:
 
-| Field | Definition |
-|---|---|
-| `gross_sales` | Sum of line item prices before discounts |
-| `discounts` | Total discounts applied |
-| `returns` | Total refunded amount |
-| `net_sales` | `gross_sales - discounts - returns` |
-| `shipping` | Shipping charged to the customer |
-| `tax` | Tax collected |
-| `total_sales` | `net_sales + shipping + tax` — what the customer actually paid |
+| Field | Definition | Derived from (Shopify GraphQL) |
+|---|---|---|
+| `gross_sales` | Sum of line item prices before any discount | `Σ lineItems[].originalTotalSet` |
+| `discounts` | Total discounts applied (line-level + order-level) | `Σ (lineItems[].originalTotalSet - discountedTotalSet)` + `cartDiscountAmountSet` |
+| `returns` | Merchandise + tax refunded (excludes shipping refunds, tracked separately in `shipping`) | `totalRefundedSet - totalRefundedShippingSet` |
+| `net_sales` | `gross_sales - discounts - returns` | derived, not read directly |
+| `shipping` | Shipping charged, net of any shipping refund | `currentShippingPriceSet` |
+| `tax` | Tax collected, net of returns | `currentTotalTaxSet` |
+| `total_sales` | What the customer actually paid, net of returns | `currentTotalPriceSet` — also used as a cross-check: `net_sales + shipping + tax` should equal this within rounding, since both derive from the same underlying order |
+
+This mapping is confirmed against Shopify's current GraphQL Admin API schema
+([Order object](https://shopify.dev/docs/api/admin-graphql/latest/objects/Order)), not
+assumed. See `shop_ingestor/internal/normalize` for the implementation and the invariant
+check.
 
 ## Which timestamp is "when" an order happened
 
