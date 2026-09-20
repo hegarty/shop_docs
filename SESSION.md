@@ -24,15 +24,14 @@ day one to grow into a multi-tenant commerce-intelligence product. Full architec
 | [`hegarty/shop_ingestor`](https://github.com/hegarty/shop_ingestor) | Webhook receiver, normalization, reconciliation | ✅ implemented, pushed, CI green |
 | [`hegarty/shop_analytics`](https://github.com/hegarty/shop_analytics) | Scheduler + analytics worker framework | ✅ implemented, pushed, CI green |
 | [`hegarty/shop_notifier`](https://github.com/hegarty/shop_notifier) | Notification delivery | ✅ implemented, pushed, CI green (log-only Sender — see Known gaps) |
-| [`hegarty/shop_docs`](https://github.com/hegarty/shop_docs) | This repo — architecture, ADRs, runbook | ✅ pushed |
-| `hegarty/terraform` (existing personal repo, not `shop_`-prefixed) | Reusable Terraform modules | ⚠️ **new module work is uncommitted, local-only** — see Known gaps |
-| `hegarty/eks` (existing personal repo, `eks-dev`) | Terragrunt for the personal-lab cluster | ⚠️ **two intentional edits uncommitted, local-only** — see Known gaps |
-| `eks-prod` (new, not yet on GitHub) | Terragrunt for the new shared `eks-prod` cluster | 🔴 **not committed, not pushed, no GitHub repo exists yet** — see Known gaps |
+| [`hegarty/shop_docs`](https://github.com/hegarty/shop_docs) | This repo — architecture, ADRs, runbook, roadmap | ✅ pushed |
+| [`hegarty/terraform`](https://github.com/hegarty/terraform) (existing personal repo, not `shop_`-prefixed) | Reusable Terraform modules | ✅ pushed, open PR [#4](https://github.com/hegarty/terraform/pull/4) awaiting review/merge |
+| [`hegarty/eks`](https://github.com/hegarty/eks) (existing personal repo, `eks-dev`) | Terragrunt for the personal-lab cluster | ✅ pushed, open PR [#5](https://github.com/hegarty/eks/pull/5) awaiting review/merge |
+| [`hegarty/eks-prod`](https://github.com/hegarty/eks-prod) | Terragrunt for the new shared `eks-prod` cluster | ✅ pushed to `main`, governed |
 
-If you only read one row: **the application layer (the five repos above the line) is
-done and safe in GitHub. The infrastructure layer (the three below the line) exists only
-as files on the machine this was built on and is one `rm -rf` or lost laptop away from
-being gone.** Fixing that is the single highest-priority item in Known gaps below.
+As of 2026-09-20, everything above is committed and pushed. The `terraform` and `eks` PRs
+are deliberately left unmerged — they touch real infrastructure definitions and are
+waiting on the user's review, not on any more work.
 
 ## Operating model
 
@@ -77,13 +76,14 @@ default, since this account isn't on GitHub Enterprise). See
   integrated (deliberate; see that repo's README).
 - The `eks-prod` Terragrunt tree (35 units: networking, EKS, Karpenter, Cilium, Redpanda,
   self-hosted observability, plus commerce-intel's own RDS/S3/ECR/secrets/Pod Identity) is
-  fully designed and locally `terragrunt hclfmt`-clean, targeting its own AWS account
-  (868150784168, separate from `eks-dev`'s 891377023413) — but see Known gaps, it is not
-  yet committed anywhere.
+  fully designed, locally `terragrunt hclfmt`-clean, targeting its own AWS account
+  (868150784168, separate from `eks-dev`'s 891377023413), **and now pushed** to a new,
+  governed `hegarty/eks-prod` repo.
 - `hegarty/terraform`'s new/modified modules (`eks/pod_identity`, `eks/karpenter`,
   `rds-postgres`, `secrets-manager`, `budgets`, plus small additive changes to `ecr`, `s3`,
   `eks/cluster`, `eks/addons/helm`, `eks/storage_class`, `networking/security_groups`) are
-  written and pass `terraform validate`, but are not committed (see Known gaps).
+  written, pass `terraform validate`, and are pushed — stacked onto that repo's existing
+  open PR #4 (see Known gaps for why), not yet merged.
 - No terraform module has ever been tagged (`git tag -l` in that repo is empty) — the
   `v1.0.0` bootstrap tagging described in
   [`docs/terraform-versioning.md`](docs/terraform-versioning.md) has not been run yet. Every
@@ -95,27 +95,22 @@ default, since this account isn't on GitHub Enterprise). See
 
 ## Known gaps (real, not hypothetical)
 
-1. **🔴 Highest priority: the entire infrastructure layer is uncommitted and, for
-   `eks-prod`, not even on GitHub.** Specifically, as of this writing:
-   - `hegarty/terraform`: new module code + edits to existing modules sit as uncommitted
-     working-tree changes on branch `feat/s3-module` (not even `main`). `git status` shows
-     ~13 modified files and ~9 new untracked directories/files.
-   - `hegarty/eks`: two intentional edits (`root.hcl`'s module-source git-URL fix,
-     `us-east-1/eks/cluster/terragrunt.hcl`'s explicit log-type list preserving `eks-dev`'s
-     original behavior) are uncommitted working-tree changes.
-   - `eks-prod`: `git init`'d locally, all 45 files staged, **zero commits**, **no GitHub
-     remote configured, no GitHub repo created**. This is the platform's entire cluster/
-     networking/Karpenter/Cilium/Redpanda/observability design existing nowhere but this
-     one machine's working directory.
-
-   None of this was a mistake in isolation — Terraform/Terragrunt work was generated and
-   validated locally by design (the user performs all applies and, implicitly, decides
-   when infra-as-code gets committed/pushed), and repo creation for `eks-prod` was never
-   explicitly requested the way the five `shop_*` repos were. But the accumulated state is
-   a real risk that should be resolved deliberately: either commit+push all three (creating
-   the `eks-prod` GitHub repo via `github-security-controller repo create` the same way the
-   `shop_*` repos were made), or explicitly decide to keep iterating locally a while longer
-   with eyes open to the loss risk.
+1. **Resolved 2026-09-20 (previously the top gap here): the entire infrastructure layer
+   was uncommitted and, for `eks-prod`, not even on GitHub.** For the record, since this
+   was a real risk worth learning from: `terraform`'s new module code and `eks`'s two
+   intentional edits had been sitting as uncommitted working-tree changes since the session
+   that wrote them; `eks-prod` was `git init`'d locally with all 45 files staged but zero
+   commits and no GitHub remote at all — the platform's entire cluster design existed
+   nowhere but one machine's working directory. None of this was a mistake in isolation
+   (Terraform/Terragrunt work is generated and validated locally by design — the user
+   performs all applies), but it went unnoticed for longer than it should have because
+   nothing was tracking cross-repo state until this file started existing. Fixed by
+   committing and pushing all three: `terraform`'s work landed on its existing open PR #4
+   (it modifies the `s3` module that PR itself introduces, so it couldn't cleanly go
+   anywhere else); `eks`'s two fixes got a fresh PR #5 off `main`, kept separate from an
+   unrelated open PR on that repo; `eks-prod` got a new GitHub repo, a bootstrap commit,
+   and the same governance as every other repo here. Both `terraform`#4 and `eks`#5 are
+   still open, deliberately — merging real infrastructure definitions is the user's call.
 
 2. **Go directive inconsistency across the four Go repos.** `shop_platform`,
    `shop_ingestor`, and `shop_analytics` have `go 1.25.0` in `go.mod`; `shop_notifier` has
@@ -148,8 +143,10 @@ default, since this account isn't on GitHub Enterprise). See
 
 ## Roadmap / next steps
 
-1. Resolve gap #1 above — get `terraform`, `eks`, and `eks-prod` committed and pushed (with
-   the user's explicit go-ahead, since it includes creating a new GitHub repo).
+See [`roadmap/milestones.md`](roadmap/milestones.md) for the full, checkbox-tracked
+breakdown. Immediate next steps:
+
+1. Review and merge `terraform` PR #4 and `eks` PR #5 (both open, CI green).
 2. Bootstrap-tag every `terraform` module at `v1.0.0` (`make release MODULE=... VERSION=1.0.0`,
    prints the tag/push commands for review — see `docs/terraform-versioning.md`).
 3. Bootstrap `eks-prod`'s remote state in AWS account 868150784168 (S3 bucket + DynamoDB
@@ -165,11 +162,14 @@ default, since this account isn't on GitHub Enterprise). See
 
 ## Where to look for more
 
+- [`roadmap/`](roadmap/README.md) — the original brief this platform was commissioned
+  from (`roadmap/initial-prompt.md`), and its milestone breakdown (`roadmap/milestones.md`).
+  This file (`SESSION.md`) is the volatile day-to-day status; the roadmap is the longer arc.
 - `docs/architecture.md`, `docs/event-model.md`, `docs/database-model.md`,
   `docs/security.md`, `docs/observability.md`, `docs/cost-model.md` — the "why" behind
   everything.
 - `docs/adr/` — one-decision-at-a-time rationale, including the two (0011, 0012) added
   alongside this file.
-- `docs/deployment.md` — the ordered runbook; not fully executable yet per gap #1 above.
+- `docs/deployment.md` — the ordered runbook.
 - Each `shop_*` repo's own `README.md` — service-specific detail this file doesn't
   duplicate.
