@@ -6,8 +6,9 @@ platform — a Shopify sales analytics and monitoring platform, launching with o
 product.
 
 **Picking this up cold?** Read [`SESSION.md`](SESSION.md) first — it tracks what's
-actually pushed vs. still local-only across this platform's six repos, and the current
-known gaps.
+actually pushed vs. still local-only across this platform's repos, and the current known
+gaps. For the longer-arc plan (the original brief and how it breaks into milestones), see
+[`roadmap/`](roadmap/README.md).
 
 ## Repositories
 
@@ -17,8 +18,8 @@ known gaps.
 | [`shop_ingestor`](https://github.com/hegarty/shop_ingestor) | Shopify webhook receiver, reconciliation, normalization |
 | [`shop_analytics`](https://github.com/hegarty/shop_analytics) | Scheduler + analytics worker framework + jobs |
 | [`shop_notifier`](https://github.com/hegarty/shop_notifier) | Notification delivery (SMS first, vendor-agnostic) |
-| `eks-prod` | Terragrunt config for the shared EKS cluster this platform (and future unrelated projects) runs on. **Not yet pushed to GitHub** — see `SESSION.md`. |
-| [`terraform`](https://github.com/hegarty/terraform) | Reusable, tag-versioned Terraform modules. New modules for this platform are written but not yet committed — see `SESSION.md`. |
+| [`eks-prod`](https://github.com/hegarty/eks-prod) | Terragrunt config for the shared EKS cluster this platform (and future unrelated projects) runs on |
+| [`terraform`](https://github.com/hegarty/terraform) | Reusable, tag-versioned Terraform modules. This platform's new modules are in open PR [#4](https://github.com/hegarty/terraform/pull/4), not yet merged. |
 
 ## Docs
 
@@ -33,3 +34,4 @@ known gaps.
 - [deployment.md](docs/deployment.md) — the ordered runbook for standing up the platform
 - [disaster-recovery.md](docs/disaster-recovery.md) — data ownership, recovery procedures
 - [adr/](docs/adr/README.md) — architecture decision records
+- [roadmap/](roadmap/README.md) — the original brief and its milestone breakdown
