@@ -13,3 +13,5 @@ every choice made.
 - [0008 - Generic analytics worker framework](0008-generic-analytics-worker-framework.md)
 - [0009 - OpenTelemetry observability](0009-opentelemetry-observability.md)
 - [0010 - Terraform module semantic versioning](0010-terraform-module-versioning.md)
+- [0011 - GitHub repository governance via policy-as-code](0011-github-repo-governance-via-policy-as-code.md)
+- [0012 - Treat Shopify webhooks as change notifications](0012-webhook-as-change-notification.md)

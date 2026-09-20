@@ -2,7 +2,9 @@
 
 ## Prerequisites
 
-- Go 1.23.8 (each repo pins this in `.tool-versions`; `asdf install` picks it up)
+- Go 1.25.x (each repo pins an exact patch version in `.tool-versions`; `asdf install` picks
+  it up — bumped from 1.23.8 after `github.com/jackc/pgx/v5` shipped a security fix that
+  required Go ≥ 1.25)
 - Docker (for local Postgres + Redpanda)
 - `gh` CLI authenticated, if you need to interact with GitHub from the command line
 
