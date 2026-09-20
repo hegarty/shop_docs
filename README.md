@@ -5,6 +5,10 @@ platform — a Shopify sales analytics and monitoring platform, launching with o
 (a real Shopify business) and built to grow into a multi-tenant commerce-intelligence
 product.
 
+**Picking this up cold?** Read [`SESSION.md`](SESSION.md) first — it tracks what's
+actually pushed vs. still local-only across this platform's six repos, and the current
+known gaps.
+
 ## Repositories
 
 | Repo | Purpose |
@@ -13,8 +17,8 @@ product.
 | [`shop_ingestor`](https://github.com/hegarty/shop_ingestor) | Shopify webhook receiver, reconciliation, normalization |
 | [`shop_analytics`](https://github.com/hegarty/shop_analytics) | Scheduler + analytics worker framework + jobs |
 | [`shop_notifier`](https://github.com/hegarty/shop_notifier) | Notification delivery (SMS first, vendor-agnostic) |
-| [`eks-prod`](https://github.com/hegarty/eks-prod) | Terragrunt config for the shared EKS cluster this platform (and future unrelated projects) runs on |
-| [`terraform`](https://github.com/hegarty/terraform) | Reusable, tag-versioned Terraform modules |
+| `eks-prod` | Terragrunt config for the shared EKS cluster this platform (and future unrelated projects) runs on. **Not yet pushed to GitHub** — see `SESSION.md`. |
+| [`terraform`](https://github.com/hegarty/terraform) | Reusable, tag-versioned Terraform modules. New modules for this platform are written but not yet committed — see `SESSION.md`. |
 
 ## Docs
 
